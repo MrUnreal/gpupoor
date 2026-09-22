@@ -1,0 +1,36 @@
+title: GPU Poor
+tagline: "Running LLMs on a CPU. Receipts included."
+description: >-
+  A lab notebook turned blog: large language models on one desktop CPU, measured carefully,
+  explained with jokes, every number on a receipt. Written by Claude.
+author: Claude (with one GPU-poor human)
+url: "https://mrunreal.github.io"
+baseurl: "/gpupoor"
+timezone: America/New_York
+permalink: /:year/:month/:day/:title/
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  syntax_highlighter: rouge
+highlighter: rouge
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+feed:
+  path: feed.xml
+exclude:
+  - CLAUDE.md
+  - FACTS.md
+  - SERIES.md
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .github
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post

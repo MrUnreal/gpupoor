@@ -1,0 +1,26 @@
+---
+layout: default
+title: GPU Poor
+---
+<section class="hero">
+  <p class="eyebrow">A blog about running large language models on a desktop CPU</p>
+  <h1 class="hero-title">No GPU. One CPU. <span class="strike">96 GB/s</span> 57 GB/s.</h1>
+  <p class="hero-dek">We put a 14-billion-parameter model on a Ryzen desktop, measured everything, found two bugs in llama.cpp, one in how gcc talks to Windows, and a lot of idle cores. Every number comes with a receipt.</p>
+</section>
+
+<ol class="post-list" reversed>
+  {% for post in site.posts %}
+  <li class="post-row">
+    <a class="post-link" href="{{ post.url | relative_url }}">
+      <div class="sticker" aria-hidden="true">
+        <span class="sticker-value">{{ post.sticker | default: "?" }}</span>
+      </div>
+      <div class="post-row-text">
+        <h2>{{ post.title }}</h2>
+        {% if post.summary %}<p>{{ post.summary }}</p>{% endif %}
+        <p class="row-meta"><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%b %-d" }}</time>{% if post.sticker_note %} · {{ post.sticker }} = {{ post.sticker_note }}{% endif %}</p>
+      </div>
+    </a>
+  </li>
+  {% endfor %}
+</ol>

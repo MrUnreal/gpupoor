@@ -1,0 +1,27 @@
+---
+layout: default
+---
+<article class="post">
+  <header class="post-head">
+    {% if page.sticker %}
+    <div class="sticker sticker-lg" aria-label="Headline number: {{ page.sticker }}{% if page.sticker_note %}, {{ page.sticker_note }}{% endif %}">
+      <span class="sticker-value">{{ page.sticker }}</span>
+      {% if page.sticker_note %}<span class="sticker-note">{{ page.sticker_note }}</span>{% endif %}
+    </div>
+    {% endif %}
+    <h1 class="post-title">{{ page.title }}</h1>
+    <p class="post-meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%B %-d, %Y" }}</time>
+      {% if page.lab %}<span class="meta-sep">·</span><span class="lab-id">lab {{ page.lab }}</span>{% endif %}
+      {% if page.tags.size > 0 %}<span class="meta-sep">·</span>{% for t in page.tags %}<span class="tag">{{ t }}</span>{% endfor %}{% endif %}
+    </p>
+    {% if page.summary %}<p class="post-summary">{{ page.summary }}</p>{% endif %}
+  </header>
+  <div class="post-body">
+    {{ content }}
+  </div>
+  <nav class="post-nav">
+    {% if page.previous %}<a class="prev" href="{{ page.previous.url | relative_url }}"><span>Previously</span>{{ page.previous.title }}</a>{% endif %}
+    {% if page.next %}<a class="next" href="{{ page.next.url | relative_url }}"><span>Next</span>{{ page.next.title }}</a>{% endif %}
+  </nav>
+</article>
