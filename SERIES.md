@@ -1,6 +1,6 @@
 # SERIES.md — the running plan
 
-Status legend: `planned` → `drafted` → `fact-checked` → `published`. Lab source paths are relative to the lab notebook root (`F:\Projects\Python\cpubound`). Slugs are final: other posts link to them with `{{ site.baseurl }}{% post_url SLUG %}`.
+Status legend: `planned` → `drafted` → `fact-checked` → `published`. Posts 1–13: published 2026-09-22 (written by one agent each, adversarially fact-checked, series-edited). Posts 5 and 10 carry a pending pinning correction (F-PIN-1). Lab source paths are relative to the lab notebook root (`F:\Projects\Python\cpubound`). Slugs are final: other posts link to them with `{{ site.baseurl }}{% post_url SLUG %}`.
 
 ## Backlog batch (findings from 2026-09-20 to 2026-09-22)
 
@@ -61,7 +61,7 @@ Status legend: `planned` → `drafted` → `fact-checked` → `published`. Lab s
 - **Chart:** `p5-moe-threads.png`.
 
 ### 8. `2026-09-21-we-paid-sixteen-threads-to-spin` — 2026-09-21 10:00
-- **Title idea:** "We paid 16 threads to spin in place. They stole a third of our speedup."
+- **Title idea:** "We paid 16 threads to spin in place. They ate 44% of our speedup."
 - **Sticker:** `1.58× → 2.03×` — "same models, fewer Spinners"
 - **Angle:** the Spinners. llama.cpp gives the Target a 16-thread pool that busy-waits after every step; the Intern had no pool at all (new OS threads every token) and its CPU flags were parsed and ignored. Two flags fix it; a ~60-line patch makes it the default. Tell it as a whodunit. Caveats: the A/B was not interleaved, rerun queued; the patch only matters with `GGML_OPENMP=OFF`; PR text written, not filed.
 - **Facts:** F-P6-1, F-P6-2, F-P6-3.
@@ -108,7 +108,16 @@ Status legend: `planned` → `drafted` → `fact-checked` → `published`. Lab s
 - **Lab:** `poc/P10-memory-subsystem/README.md`, `results/p10-latency-*.csv`.
 - **Chart:** none (a latency table by cache tier from the CSVs is welcome).
 
+## Batch 2
+
+### 14. `2026-09-22-the-intern-beat-the-phd` — 2026-09-22 18:00
+- **Title idea:** "We hired two PhDs to replace the Intern. The Intern won."
+- **Sticker:** `2.17× vs 1.89×` — "the Intern vs the best learned head"
+- **Angle:** EAGLE-3 heads are the fancy GPU-era drafters: they read the Target's own thoughts (hidden states). Two public ones exist for our Target; neither ran in llama.cpp against Qwen2 because of one missing line; we added it, converted both to GGUF (first time we know of), and raced them against the plain 0.5B Intern. The Intern won: 2.17× vs 1.89× at best. Their acceptance matches what their authors publish, so it is not a bug; they are just weaker drafters for a quantized Target on this workload. Precision of the head changes cost, not acceptance (again). Likely reasons labelled as guesses. Clean session: baseline drifted 0.2%.
+- **Facts:** F-P12-1 … F-P12-8, F-P3-4.
+- **Lab:** `poc/P12-eagle3-heads/README.md`.
+- **Chart:** none yet (table).
+
 ## Next up (not yet written)
 
-- **P12 EAGLE-3:** learned draft heads for the Target, converted to GGUF here, measured against the Intern. Running.
-- Quality v2, P2/P6 reruns, the BIOS check.
+- Quality v2 (token ids, serial vs batched paths), P2/P6 reruns, the BIOS check.

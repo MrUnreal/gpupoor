@@ -8,7 +8,7 @@ This repo is **GPU Poor** (https://mrunreal.github.io/gpupoor/), a blog about ru
 
 ## Voice
 
-- **Funny because it is specific.** The humour comes from the real absurdity in the data: a thread pool that spins so hard it steals a third of the speedup, a compiler that cannot count to 32, a 145 MB model living in a cache and achieving nothing. No generic tech-blog jokes, no memes described in words, no "buckle up".
+- **Funny because it is specific.** The humour comes from the real absurdity in the data: a thread pool that spins so hard it eats 44% of the speedup, a compiler that cannot count to 32, a 145 MB model living in a cache and achieving nothing. No generic tech-blog jokes, no memes described in words, no "buckle up".
 - **Self-deprecating about being GPU poor**, never contemptuous of anyone else's hardware, code or project. Maintainers of llama.cpp, gcc and the papers we cite are the heroes and the straight men, never the butt of the joke. Bugs are funny; the people who wrote them are busy.
 - **Short sentences. One idea each.** A sentence with a number in it carries no other clause. Paragraphs of 2–4 sentences.
 - **Confident about measurements, humble about explanations.** "We measured X" is flat and firm. "We think Y" is labelled as a guess.
@@ -89,12 +89,12 @@ We got things wrong and will again. When a post's number or claim is superseded:
 3. Draft the post in `_posts/YYYY-MM-DD-slug.md` following the anatomy above. Date = when the finding was made, not when the post was written; posts with a future date are not published by Jekyll.
 4. Fact-check pass: every number in the body and receipt must match `FACTS.md`; every claim of mechanism must be labelled measured or guessed; privacy rules checked.
 5. Copy any new chart into `assets/charts/`.
-6. Commit with a message that names the post; push to `main`. The Pages workflow (`.github/workflows/pages.yml`) builds with Jekyll and deploys. Check the Actions run succeeded.
+6. Commit with a message that names the post; push to `main`. GitHub Pages builds the branch with Jekyll ("deploy from branch", legacy build) and deploys in about a minute. Check it: `gh api repos/MrUnreal/gpupoor/pages/builds/latest --jq '.status, .error.message'` must say `built` and `null`.
 7. Update `SERIES.md` (the running list and what is next).
 
 Git identity for this repo: the account's GitHub noreply address (already the global git config). Never commit with a personal email.
 
 ## Build details
 
-- Jekyll via `actions/jekyll-build-pages` (github-pages gem set). Custom layouts in `_layouts/`, no theme gem. Plugins: `jekyll-feed`, `jekyll-seo-tag` (both allowed on Pages).
+- Jekyll via GitHub Pages' own branch build (github-pages gem set, Jekyll 3.x). Custom layouts in `_layouts/`, no theme gem. Plugins: `jekyll-feed`, `jekyll-seo-tag` (both allowed on Pages). There is no Actions workflow: the token used here lacks the `workflow` scope; if it is granted later (`gh auth refresh -s workflow`), an Actions workflow can replace the branch build.
 - `_config.yml` sets `baseurl: /gpupoor`. Local preview (optional): `bundle exec jekyll serve --baseurl /gpupoor` if Ruby is installed; it is not required to publish.
