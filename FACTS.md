@@ -10,8 +10,17 @@ Session noise: plain decode of the same 14B model varied 6.24–6.70 tok/s acros
 
 | id | fact | source | note |
 |---|---|---|---|
-| F-PIN-1 | Every llama.cpp run pinned to one die with `--cpu-range 0-15` / `16-31` or masks `0xFFFF` / `0xFFFF0000` plus `--cpu-strict 1` put its 8 threads on **4 physical cores, 2 threads each**: strict placement gives thread *i* the *i*-th allowed logical CPU, and Windows numbers the two SMT threads of a core next to each other (core 8 = CPUs 16, 17) | llama.cpp `ggml_thread_cpumask_next`, Windows processor map | found by a fact-checker on 2026-09-22; affects F-P2-3, F-P8-1/2/3/4 and the die-split rows of P3a/P6; the lab's own STREAM and gather benchmarks were unaffected (they pinned every other CPU) |
+| F-PIN-1 | Every llama.cpp run pinned to one die with `--cpu-range 0-15` / `16-31` or masks `0xFFFF` / `0xFFFF0000` plus `--cpu-strict 1` put its 8 threads on **4 physical cores, 2 threads each**: strict placement hands each thread the next allowed logical CPU in order (the 8 threads land on CPUs 16…23), and Windows numbers the two SMT threads of a core next to each other (core 8 = CPUs 16, 17) | llama.cpp `ggml_thread_cpumask_next`, Windows processor map | found by a fact-checker on 2026-09-22; affects F-P2-3, F-P8-1/2/3/4 and the die-split rows of P3a/P6; the lab's own STREAM benchmark pinned every other CPU and was correct; the gather benchmark is unpinned and was unaffected |
 | F-PIN-2 | Correct one-die masks: CCD0 cores `0x5555`, CCD1 cores `0x55550000` | same | rerun with these: P13 |
+| F-P13-1 | Positive control: 1.7B Target on 8 real cores with the 135M draft pinned to **one** core: 66.8 tok/s vs 84.4 with 8 draft cores | `results/p13-*.jsonl` | pinning takes effect (with the P6 patch) |
+| F-P13-2 | One die, 8 real cores, plain decode: 7B Q4_K_M **12.67** tok/s (old 4-core layout 11.89; 16 unpinned ~12.9); 1.7B 52.4 vs 54.2 on 16; 14B 6.43 vs 6.36 | P13 | one die = 97–101% of the chip |
+| F-P13-3 | Verification cost on one die, 8 real cores, 7B Q4_K_M, 3 reps: 4 tokens **1.11–1.16×**, 8 tokens **1.65–1.88×**, 16 tokens **2.34–2.56×** | `results/p13-p2-ccd1-8cores.jsonl` | replaces F-P2-3; not smaller than the old 4-core figures (1.60 / 2.25) |
+| F-P13-4 | 135M draft alone, 8 real cores: **572** tok/s on the V-cache die vs **379** on the other (1.51×); 4 real cores 573 vs 365 | P13 | residency effect survives; higher than P8's 495/301 (different session) |
+| F-P13-5 | 1.7B + 135M, K = 4: 16+16 unpinned **86.2**; Target CCD1 + draft CCD0 (V-cache) **84.4**; draft sharing the Target's CCD1 80.8; Target on V-cache die + draft on CCD1 **76.8** tok/s | P13 | die split costs 2%; draft-in-cache beats sharing by 4%; swapping dies costs 9% |
+| F-P13-6 | 14B Q4_K_M + 0.5B Q8_0, K = 4: 16+16 **14.45** tok/s (2.27×); Target 16 + draft 4 cores 14.38; Target one die + draft other die **12.75** (2.00×) | P13 | die split costs 12% on the big model |
+| F-P13-8 | First-run (P8) server means for the 1.7B pair: 16+16 unpinned **78.2** tok/s; one-die layouts 59.0 (Target on V-cache die), 61.9, 62.2; penalty vs 78.2 = 20–25% | `results/p8-spec.jsonl` | different session from P13; compare within a session |
+| F-P13-7 | Old claim withdrawn: "every one-die Target layout loses 20–25%" (P8) was mostly the pinning bug | P13 | |
+
 
 ## Memory and the ceiling (P0, P10)
 
@@ -60,7 +69,7 @@ Session noise: plain decode of the same 14B model varied 6.24–6.70 tok/s acros
 |---|---|---|---|
 | F-P2-1 | Verifying 4 tokens per step costs **1.07–1.14×** one token (Q4_0 1.07, Q4_K_M 1.08, Q8_0 1.14) | `results/p2-batch.jsonl` | 1 run per point; 3-rep rerun queued |
 | F-P2-2 | 8 tokens: **1.24–1.35×**; 16 tokens: **1.48–1.74×** (Q4_0 flattest at 16) | P2 | same caveat |
-| ~~F-P2-3~~ | ~~On 8 cores instead of 16: 8 tokens cost 1.60×, 16 cost 2.25×~~ **Superseded:** that run used 8 threads on **4 physical cores** (F-PIN-1). Measured as run: 8 threads on one die (4 cores × 2 SMT threads): 8 tokens 1.60×, 16 tokens 2.25× | P2 | corrected rerun on 8 real cores: see F-P13 when it lands |
+| ~~F-P2-3~~ | ~~On 8 cores instead of 16: 8 tokens cost 1.60×, 16 cost 2.25×~~ **Superseded:** that run used 8 threads on **4 physical cores** (F-PIN-1). Measured as run: 8 threads on one die (4 cores × 2 SMT threads): 8 tokens 1.60×, 16 tokens 2.25× | P2 | first run 1 rep; corrected rerun on 8 real cores: F-P13-3 |
 
 ## Speculative decoding (P3, P6, P9)
 

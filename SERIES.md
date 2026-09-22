@@ -118,6 +118,18 @@ Status legend: `planned` → `drafted` → `fact-checked` → `published`. Posts
 - **Lab:** `poc/P12-eagle3-heads/README.md`.
 - **Chart:** none yet (table).
 
+### 15. `2026-09-22-eight-threads-four-cores` — 2026-09-22 15:20 (published)
+- **Title:** "We hired eight movers. It was four guys in two hats each."
+- **Sticker:** `8 = 4` — "threads we pinned vs cores we got"
+- **Angle:** confession. `--cpu-range` + `--cpu-strict 1` put 8 threads on 4 hyperthreaded cores; a fact-checker caught it; the same-day rerun overturned the die-split penalty (2%/12%, not 25%), softened the V-cache result (+4%), and left the rest standing. Positive control. Advice on masks.
+- **Facts:** F-PIN-1/2, F-P13-1 … F-P13-7, F-P8-2/3, F-P2-3.
+- **Lab:** `poc/P13-pinning-rerun/README.md`, `docs/adr/0012-pinning-masks.md`.
+- **Chart:** `p13-layouts.png`. Posts 5 and 10 were corrected in place (strike-throughs) and link here.
+
 ## Next up (not yet written)
 
-- Quality v2 (token ids, serial vs batched paths), P2/P6 reruns, the BIOS check.
+- **The two llama.cpp PRs, filed** (P6 pause-pools, P7 Q4_0 pointer fix, plus the one-line qwen2 `t_layer_inp`): a post when they are actually sent, with maintainer feedback if any.
+- **The BIOS check** (P10 cliffhanger): if the memory controller was at half clock, a re-baseline post ("Everything on this blog just got 1.3× faster").
+- **Tiled GEMM + `--no-repack` as a verification-curve story**: does the PR flatten t(8+) on Q4_K_M?
+- **Reruns queued by the review** (P2 at 3 reps, P6 interleaved stock vs patched).
+

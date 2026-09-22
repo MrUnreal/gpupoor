@@ -17,10 +17,10 @@ Speculative decoding is the plan to buy a carton. A tiny model guesses the next 
 
 We priced the checking without a guesser, using a stand-in. llama.cpp ships `llama-batched-bench`, which runs N sequences side by side, each producing one token per step. For the weights, that is the same matrix work as one sequence checking N guessed tokens. The attention part differs slightly, and at our short prompt it barely registers. Divide the step time at N by the step time at 1, and you have the price of checking N answers.
 
-We ran it on Qwen2.5-7B at Q4_0, Q4_K_M and Q8_0, and on the 14B Target at Q4_K_M. Then we ran the 7B Q4_K_M once more, squeezed onto 8 threads pinned to a single die. Everything else ran on 16 threads. (Those 8 threads turned out to be sitting on only 4 physical cores. See the correction at the bottom.)
+We ran it on Qwen2.5-7B at Q4_0, Q4_K_M and Q8_0, and on the 14B Target at Q4_K_M. Then we ran the 7B Q4_K_M once more, squeezed onto 8 threads pinned to a single die. Everything else ran on 16 threads. (Those 8 threads turned out to be sitting on only 4 physical cores. We reran it on 8 real cores; see the correction at the bottom.)
 
 ![Line chart of step time relative to a one-token step, against tokens checked per step, for Qwen2.5-7B at Q4_0, Q4_K_M and Q8_0 on 16 threads and Q4_K_M on 8 threads pinned to one die. At four tokens the 16-thread curves sit at 1.07 to 1.14 times; the pinned curve bends first.]({{ '/assets/charts/p2-verification-cost.png' | relative_url }})
-*Step time relative to a one-token step, 7B only. The grey diagonal is linear cost, the worst case: 4× at four tokens, off the top of the chart soon after. The line labelled "8 thr, one CCD" is really 4 physical cores; see the correction below.*
+*Step time relative to a one-token step, 7B only. The grey diagonal is linear cost, the worst case: 4× at four tokens, off the top of the chart soon after. The yellow line is the original pinned run, which was really 4 physical cores; the green line is the rerun on 8 real cores (median of 3 reps). They land close together.*
 
 The price list:
 
@@ -28,7 +28,7 @@ The price list:
 - On Q4_K_M, the Target's own quant, it is **1.08×**.
 - Checking 8 tokens costs **1.24–1.35×**.
 - Checking 16 tokens costs **1.48–1.74×**.
-- With 8 threads pinned to one die, 8 tokens cost ~~1.60× on 8 cores~~ **1.60×**, and 16 tokens cost **2.25×**. Those threads were on 4 physical cores, not 8. Correction pending.
+- On one die, ~~8 tokens cost 1.60× and 16 cost 2.25×~~ (that run was 4 physical cores). Rerun on 8 real cores, 3 reps: 8 tokens cost **1.65–1.88×**, 16 cost **2.34–2.56×**.
 
 Each point is a single run. A three-rep rerun is queued, so hold the second decimal loosely.
 
@@ -46,7 +46,7 @@ Now the mechanism. The one-trip part is arithmetic, not a guess. A single token 
 
 The rest is the textbook story; our curves fit it, but we did not run a profiler to prove it. At one token per step, most of the CPU is standing in the hallway waiting for bytes. Every weight that comes through the door gets multiplied by every token in the batch. One token means one multiply per weight, then a wait. Four tokens means four multiplies per weight, and the same wait. The extra arithmetic lands on cores that were idle anyway. You pay for the trip to RAM once, and the maths rides along.
 
-**Measured:** the free lunch ends somewhere between 8 and 16 tokens. **Guessed:** past that point the cores stop waiting for RAM and start waiting for themselves. The pinned run fits that story. At one token it is just as fast, because RAM is the limit either way. With less of the chip doing the maths, the bill arrives early. We first wrote "half the chip, half the headroom". It was a quarter of the chip: the 8 threads shared 4 cores. The real half-chip number is being remeasured, and it will matter later, when we try giving the Target one die and the Intern the other.
+**Measured:** the free lunch ends somewhere between 8 and 16 tokens. **Guessed:** past that point the cores stop waiting for RAM and start waiting for themselves. The one-die run fits that story. At one token it is just as fast, because RAM is the limit either way. With half the chip doing the maths, the bill arrives early. Half the chip, half the headroom. (The first run was accidentally a quarter of the chip; the honest half-chip rerun costs about the same, which says something rude about how much a second hyperthread helps these kernels.) It matters later, when we give the Target one die and the Intern the other.
 
 **Measured:** the 14B Target draws the same shape as the 7B. With two models that is a hint, not a law, but the curve looks like a property of the kernel and the core count rather than of the model.
 
@@ -60,7 +60,7 @@ One asterisk on the Q4_0 line. On our stock gcc build, every Q4_0 model crashed,
 
 - **Try speculative decoding on your CPU.** On this machine the checking is cheap. Checking four tokens costs 7–14% more than checking one.
 - **Keep drafts short.** Checking stays cheap up to about 8 tokens and gets pricey after that. On this llama.cpp build the knob is `--spec-draft-n-max`, and the Target checks one token more than the draft length. Past the knee, every extra guess costs real money, including the ones the Target throws away.
-- **Give the Target every core while it checks.** Squeezed onto 4 cores, 16 tokens cost 2.25×. The same 7B Q4_K_M on all 16 cores pays 1.74×. (How much of that survives on 8 honest cores: correction pending.)
+- **Give the Target every core while it checks,** at least for long drafts. On one die, 16 tokens cost 2.34–2.56×. On all 16 cores, 1.74×. At four tokens the gap is small (1.11–1.16× vs 1.08×).
 - **Price your own carton before you go shopping.** One command measures the curve for any model: `llama-batched-bench -m model.gguf -pps -npp 128 -ntg 32 -npl 1,2,4,8,16`. Divide each row's `T_TG s` by the first row's. If those ratios climb anywhere near 2, 4, 8, 16, no Intern can save you.
 
 The carton is cheap. Now we need someone to fill it, so we went and [hired the cheapest Intern we could find]({{ site.baseurl }}{% post_url 2026-09-20-hire-the-cheapest-intern %}).
@@ -78,10 +78,11 @@ VERIFY N TOKENS / VERIFY 1, 16 THREADS
 16 tok, all 4 curves ... 1.48-1.74x  [F-P2-2]
 16 tok, Q4_0 (flattest) ..... 1.48x  [F-P2-2]
 16 tok, 7B Q4_K_M ........... 1.74x  [F-P2-2]
-8 THREADS PINNED, REALLY 4 CORES, 7B Q4_K_M
- 8 tok ...................... 1.60x  [F-P2-3]
-16 tok ...................... 2.25x  [F-P2-3]
- (8 real cores: rerun pending)      [F-PIN-1]
+ONE DIE, 8 REAL CORES, 7B Q4_K_M, 3 REPS
+ 4 tok ................. 1.11-1.16x  [F-P13-3]
+ 8 tok ................. 1.65-1.88x  [F-P13-3]
+16 tok ................. 2.34-2.56x  [F-P13-3]
+(first run on 4 cores: 1.60/2.25) [F-P2-3]
 DERIVED
  1.08 - 1 ..................... +8%  [F-P2-1]
  1.07..1.14 - 1 ............ +7-14%  [F-P2-1]
@@ -102,4 +103,4 @@ THANK YOU FOR NOT BUYING A GPU
 
 ## Corrections
 
-**2026-09-22 — the "one die" line was 4 cores, not 8.** A fact-checker reading llama.cpp's thread placement noticed that `--cpu-range 16-31 --cpu-strict 1` hands thread *i* the *i*-th allowed logical CPU, and Windows numbers the two hyperthreads of each core next to each other. So "8 threads on one die" meant cores 8–11, two threads each. The numbers above are what that layout measured; the label was wrong. A rerun on 8 real cores (mask `0x55550000`) is running, and this post will get the corrected curve. Everything measured on 16 unpinned threads is unaffected.
+**2026-09-22 — the "one die" line was 4 cores, not 8.** A fact-checker reading llama.cpp's thread placement noticed that `--cpu-range 16-31 --cpu-strict 1` hands thread *i* the *i*-th allowed logical CPU, and Windows numbers the two hyperthreads of each core next to each other. So "8 threads on one die" meant cores 8–11, two threads each. We reran it the same day with a mask that picks one logical CPU per core (`-C 0x55550000 --cpu-strict 1`), three reps. On 8 real cores, 8 tokens cost 1.65–1.88× and 16 cost 2.34–2.56×, no better than the accidental 4-core run. The half-chip conclusion stands; the old numbers are struck through above. The full story of the bug is in [its own post]({{ site.baseurl }}{% post_url 2026-09-22-eight-threads-four-cores %}).
