@@ -1,12 +1,12 @@
 ---
 layout: post
-title: "105 ns says our memory controller might run at half clock"
+title: "107 ns says our memory controller might run at half clock"
 date: 2026-09-22 14:40:00 -0400
-sticker: "105 ns"
+sticker: "107 ns"
 sticker_note: "DRAM latency, low end; healthy is ~70–80"
 tags: [memory, bandwidth, latency, bios]
 lab: P10
-summary: "One die already maxes out our RAM, a random trip to memory takes 105–115 ns, and the kit has no AMD profile. We think the memory controller runs at half clock. One BIOS setting would settle it, and the BIOS is not returning our calls."
+summary: "One die already maxes out our RAM, a random trip to memory takes 107–115 ns, and the kit has no AMD profile. We think the memory controller runs at half clock. One BIOS setting would settle it, and the BIOS is not returning our calls."
 ---
 
 Every "percent of the ceiling" on this blog was measured against 57. That is how many GB/s our RAM actually delivers. The spec sheet says 96. We pinned the gap on the Bouncer, gave him a name tag, and never once asked to see his ID.
@@ -27,7 +27,7 @@ Three clues, gathered without admin rights and without rebooting anything.
 |---|---|---|
 | Spec-sheet bandwidth | 96 GB/s | 96 GB/s |
 | Measured read | 57 GB/s | ~75 GB/s |
-| DRAM latency | 105–115 ns | ~70–80 ns |
+| DRAM latency | 107–115 ns | ~70–80 ns |
 
 *Right column: spec-sheet arithmetic, then published AIDA64 figures, not ours. Different tools per column; the latency row is the least like-for-like (caveat below).*
 
@@ -73,7 +73,7 @@ Spec-sheet read .............. 96 GB/s [F-P0-1]
 Measured read peak ........... 57 GB/s [F-P0-2]
 One core alone ............ 52-54 GB/s [F-P0-3]
 Second die adds .............. nothing [F-P10-1]
-DRAM latency, 4 KB pages .. 105-115 ns [F-P10-2]
+DRAM latency, 4 KB pages .. 107-115 ns [F-P10-2]
 Healthy 1:1, AIDA64 ........ ~70-80 ns [F-P10-2]
 Healthy two-die AM5 read .... ~75 GB/s [F-P10-3]
 Ours / healthy (57/75) ....... 0.76 [derived]
@@ -92,3 +92,7 @@ QUEUED    reruns (P2, P6), quality v2,
           learned draft head vs the Intern
 THANK YOU FOR NOT BUYING A GPU
 ```
+
+## Corrections
+
+**2026-09-22 — 105 became 107.** The first version said 105–115 ns. The lowest DRAM-sized row in the latency files is 106.6 ns, so the honest range is 107–115 ns. The title and sticker changed with it. The conclusion did not.

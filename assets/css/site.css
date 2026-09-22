@@ -69,7 +69,9 @@ img { max-width: 100%; height: auto; }
   padding: .35em .6em; min-width: 5.2rem; transform: rotate(-4deg); box-shadow: var(--shadow);
   font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; text-align: center; line-height: 1.1;
 }
-.sticker-value { font-size: 1.15rem; white-space: nowrap; }
+.sticker-value { font-size: 1.15rem; }
+.post-link .sticker { max-width: 8.5rem; }
+.post-link .sticker-value { font-size: 1.05rem; text-wrap: balance; }
 .sticker-note { font-size: .68rem; font-weight: 400; max-width: 14ch; margin-top: .2em; }
 .sticker-lg { padding: .5em .8em; }
 .sticker-lg .sticker-value { font-size: 1.6rem; }
@@ -78,7 +80,7 @@ img { max-width: 100%; height: auto; }
 .post-list { list-style: none; padding: 0; margin: 8px 0 56px; display: flex; flex-direction: column; gap: 4px; }
 .post-row { border-top: 1px solid var(--rule); }
 .post-row:last-child { border-bottom: 1px solid var(--rule); }
-.post-link { display: grid; grid-template-columns: 7rem 1fr; gap: 20px; align-items: center; padding-block: 20px; text-decoration: none; color: inherit; }
+.post-link { display: grid; grid-template-columns: 8.5rem 1fr; gap: 20px; align-items: center; padding-block: 20px; text-decoration: none; color: inherit; }
 .post-link:hover h2 { text-decoration: underline; text-decoration-thickness: 2px; }
 .post-row:nth-child(even) .sticker { transform: rotate(3deg); }
 .post-row-text h2 { font-family: "Bricolage Grotesque", "Arial Black", sans-serif; font-weight: 600; font-size: 1.35rem; line-height: 1.2; margin: 0 0 .3rem; letter-spacing: -0.01em; text-wrap: balance; }
