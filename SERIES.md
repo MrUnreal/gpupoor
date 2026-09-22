@@ -110,7 +110,7 @@ Status legend: `planned` → `drafted` → `fact-checked` → `published`. Posts
 
 ## Batch 2
 
-### 14. `2026-09-22-the-intern-beat-the-phd` — 2026-09-22 18:00
+### 14. `2026-09-22-the-intern-beat-the-phd` — 2026-09-22 14:50 (published)
 - **Title idea:** "We hired two PhDs to replace the Intern. The Intern won."
 - **Sticker:** `2.17× vs 1.89×` — "the Intern vs the best learned head"
 - **Angle:** EAGLE-3 heads are the fancy GPU-era drafters: they read the Target's own thoughts (hidden states). Two public ones exist for our Target; neither ran in llama.cpp against Qwen2 because of one missing line; we added it, converted both to GGUF (first time we know of), and raced them against the plain 0.5B Intern. The Intern won: 2.17× vs 1.89× at best. Their acceptance matches what their authors publish, so it is not a bug; they are just weaker drafters for a quantized Target on this workload. Precision of the head changes cost, not acceptance (again). Likely reasons labelled as guesses. Clean session: baseline drifted 0.2%.

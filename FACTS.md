@@ -127,14 +127,18 @@ Target Qwen2.5-14B-Instruct **Q4_0**, 16 threads, greedy, 3 prompts × 2 reps, b
 
 | id | fact | source | note |
 |---|---|---|---|
-| F-P12-1 | llama.cpp could not run any hidden-state drafter (EAGLE-3/DFlash/DSpark) against a Qwen2 target: one missing line in `src/models/qwen2.cpp`; adding it fixes it | P12 | same line upstream added for qwen3next (PR #25141); plain decode unchanged |
+| F-P12-1 | llama.cpp could not run an EAGLE-3 draft against a Qwen2 target: one missing line in `src/models/qwen2.cpp`; adding it fixes it | P12 | same line upstream added for qwen3next (PR #25141); plain decode unchanged; by code reading DFlash/DSpark need it too (only EAGLE-3 was run) |
 | F-P12-2 | Two public EAGLE-3 heads for Qwen2.5-14B exist (SpecForge/UltraChat, 16k draft vocab; SpecJAX/thoughtworks, 32k), neither in GGUF; both converted with the stock converter | P12 | first GGUFs of these heads we know of |
 | F-P12-3 | 0.5B draft (Q4_K_M): **2.05×** at K = 4, **2.17×** at K = 8 (code **2.99×**) | `results/p12-*.jsonl` | same session as the heads |
 | F-P12-4 | Best EAGLE-3 configuration (SpecForge head, Q4_K_M, K = 4): **1.89×**; thoughtworks head best **1.65×** | P12 | heads lose to the 0.5B model |
 | F-P12-5 | Tokens committed per step at K = 4: heads **2.36–2.44**, 0.5B draft **3.16** | P12 | head acceptance 30–42% vs 43–76% |
-| F-P12-6 | Head precision does not move acceptance (41/34/36% at bf16, Q8_0, Q4_K_M); it moves cost: bf16 1.49× → Q4_K_M 1.89× | P12 | same lesson as F-P3-4 |
-| F-P12-7 | Measured head acceptance matches the published per-position figures (60/57/55/54% → ~2.3 tokens per step) | P12, model cards | not an implementation bug; heads are weak for this Target |
-| F-P12-8 | Untested likely reasons: heads trained against the bf16 Target (we run Q4_0), limited draft vocabulary, GPU speedups they publish use tree drafting | P12 | **hypotheses** |
+| F-P12-6 | Head precision barely moves acceptance (41/34/36% at bf16 and Q8_0, identical to the token; 40/33/36% at Q4_K_M); it moves cost: bf16 1.49× → Q4_K_M 1.89× | P12 | same lesson as F-P3-4 |
+| F-P12-7 | thoughtworks' published per-position acceptance (60.2/57.0/55.5/54.3%, chat data, unquantized Target) chains to ~2.24 tokens per step at K = 4; measured here 2.36 | P12, model card | consistency, not proof; the SpecForge card publishes no per-position figures |
+| F-P12-8 | Untested likely reasons: heads trained against the unquantized Target (we run Q4_0); limited draft vocabulary (16k / 32k); for the thoughtworks head only, its recommended GPU recipe drafts a tree while llama.cpp's server drafts a single chain. The SpecForge head's published speedups are single-chain | P12, model cards | **hypotheses** |
+| F-P12-9 | SpecForge head at Q8_0, K = 4: **1.76×**; at K = 2 / 6 / 8: 1.64× / 1.52× / 1.53×; thoughtworks head K = 2 / 4 / 6: 1.58× / 1.65× / 1.38× | `results/p12-spec.jsonl` | |
+| F-P12-10 | ms per Target step at K = 4: SpecForge head Q4_K_M **183**, the 0.5B draft **219** | P12 | heads are cheaper per step, commit fewer tokens |
+| F-P12-11 | Plain baseline bracket for P12: 6.94/6.92/7.05 before, 6.79/7.04/7.05 after (code/prose/list), drift **−0.2%** | `results/p12-baseline.jsonl` | the cleanest session of the study |
+| F-P12-12 | Acceptance per token at K = 2 → 8 for the SpecForge head: code 60% → 24%, prose 54% → 20%, list 51% → 21% | P12 | more than halves from K = 2 to K = 8 |
 
 ## Quality v2 and the review (P12 scoring, ADR-0011)
 
